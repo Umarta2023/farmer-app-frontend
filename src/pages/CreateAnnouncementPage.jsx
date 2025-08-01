@@ -1,63 +1,74 @@
 // src/pages/CreateAnnouncementPage.jsx
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createAnnouncement } from '../api';
-import { useAuth } from '../context/AuthContext'; // 1. Импортируем useAuth
+import { useAuth } from '../context/AuthContext';
 import '../App.css';
 import './CreateAnnouncementPage.css';
 
 function CreateAnnouncementPage() {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
+  // Используем один объект для хранения всех данных формы
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    price: '',
+  });
+  
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(''); // Состояние для хранения текста ошибки
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
-  // 2. Получаем пользователя и статус его загрузки из контекста
-  const { currentUser, loading: authLoading } = useAuth();
+  // Единый обработчик для всех полей
+  const handleChange = (e) => {
+    const { id, value } = e.target;
+    setFormData(prevData => ({
+      ...prevData,
+      [id]: value,
+    }));
+  };
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    setError(''); // Сбрасываем старые ошибки
 
-    // 3. Улучшенная проверка
-    if (!currentUser) {
-      alert("Ошибка: пользователь не авторизован! Пожалуйста, перезапустите приложение.");
+    // Валидация на фронтенде
+    if (!formData.title.trim()) {
+      setError('Заголовок не может быть пустым.');
       return;
     }
-    if (!title.trim()) {
-      alert('Пожалуйста, введите заголовок объявления.');
+    if (formData.price && parseFloat(formData.price) <= 0) {
+      setError('Цена должна быть положительным числом.');
+      return;
+    }
+
+    if (!currentUser) {
+      setError("Ошибка авторизации. Попробуйте перезапустить приложение.");
       return;
     }
 
     setLoading(true);
 
     const announcementData = {
-      title: title,
-      description: description,
-      price: price ? parseFloat(price) : null,
+      title: formData.title,
+      description: formData.description,
+      price: formData.price ? parseFloat(formData.price) : null,
     };
     
-    // 4. Используем ID из currentUser
     createAnnouncement(announcementData, currentUser.id)
       .then(response => {
         alert('Объявление успешно создано!');
-        navigate('/market');
+        navigate('/market'); // Перенаправляем на рынок
       })
-      .catch(error => {
-        console.error('Ошибка при создании объявления:', error.response?.data || error.message);
-        alert('Произошла ошибка! Подробности в консоли.');
+      .catch(err => {
+        console.error('Ошибка при создании объявления:', err);
+        setError('Не удалось создать объявление. Попробуйте позже.');
       })
       .finally(() => {
         setLoading(false);
       });
   };
-
-  // 5. Показываем заглушку, пока пользователь из контекста грузится
-  if (authLoading) {
-    return <p className="page-content">Загрузка...</p>;
-  }
-
+  
   return (
     <div>
       <header className="app-header">
@@ -66,15 +77,42 @@ function CreateAnnouncementPage() {
       <div className="page-content">
         <form onSubmit={handleSubmit} className="announcement-form">
           <div className="form-group">
-            <label htmlFor="title">Заголовок</label>
+            <label htmlFor="title">Заголовок *</label>
             <input
               type="text"
               id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={formData.title}
+              onChange={handleChange}
+              maxLength="100"
             />
           </div>
-          {/* ... остальные поля формы ... */}
+
+          <div className="form-group">
+            <label htmlFor="description">Описание</label>
+            <textarea
+              id="description"
+              value={formData.description}
+              onChange={handleChange}
+              rows="5"
+              maxLength="500"
+            ></textarea>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="price">Цена (₽)</label>
+            <input
+              type="number"
+              id="price"
+              value={formData.price}
+              onChange={handleChange}
+              placeholder="Например: 15000"
+              min="0"
+            />
+          </div>
+
+          {/* Отображение ошибки, если она есть */}
+          {error && <p className="error-message">{error}</p>}
+
           <button type="submit" className="submit-button" disabled={loading}>
             {loading ? 'Публикация...' : 'Опубликовать'}
           </button>

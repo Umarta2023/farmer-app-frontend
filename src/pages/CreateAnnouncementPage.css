@@ -41,3 +41,11 @@
   cursor: pointer;
   margin-top: 10px;
 }
+.error-message {
+  color: #FF3B30; /* Красный цвет для ошибок */
+  background-color: rgba(255, 59, 48, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+}
