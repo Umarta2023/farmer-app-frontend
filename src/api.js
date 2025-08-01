@@ -1,10 +1,12 @@
 // src/api.js
 import axios from 'axios';
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
-console.log("Using API URL:", API_URL);
-const apiClient = axios.create({ baseURL: API_URL });
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+const API_URL_WITH_API = `${API_BASE_URL_WITHOUT_API}/api`;
+const apiClient = axios.create({
+  baseURL: API_URL_WITH_API,
+});
 
-
+export { API_BASE_URL_WITHOUT_API, apiClient };
 
 
 // Функция для получения объявлений
