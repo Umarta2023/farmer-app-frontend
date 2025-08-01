@@ -3,11 +3,11 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
 
-console.log("Using API URL:", API_URL); // Добавим лог для отладки
+console.log("Using API URL:", API_URL);
 
-// Указываем базовый URL нашего бэкенда
+// Используем переменную API_URL для baseURL
 const apiClient = axios.create({
-  baseURL: "https://farmer-app-backend-z72z.onrender.com", 
+  baseURL: API_URL,
 });
 
 
