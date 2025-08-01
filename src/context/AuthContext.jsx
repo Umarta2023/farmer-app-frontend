@@ -4,78 +4,74 @@ import React, { createContext, useState, useEffect, useContext, useCallback } fr
 import { getOrCreateUser } from '../api';
 import WebApp from '@twa-dev/sdk';
 
-// 1. Создаем контекст
 const AuthContext = createContext(null);
 
-// 2. Создаем компонент-провайдер, который будет "владеть" данными
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Функция для обновления данных пользователя из любого места в приложении
   const updateCurrentUser = useCallback((updatedUserData) => {
     setCurrentUser(updatedUserData);
   }, []);
 
-  // Этот эффект выполняется один раз при запуске приложения для загрузки данных пользователя
   useEffect(() => {
     const initTelegramData = async () => {
-      // Пытаемся получить данные от Telegram
+      console.log("AuthProvider: useEffect запущен.");
+      setLoading(true);
+
       const tgUser = WebApp.initDataUnsafe?.user;
 
       if (tgUser) {
-        // Если мы в Telegram
+        console.log("AuthProvider: Пользователь Telegram найден, ID:", tgUser.id);
         const userDataForApi = {
           id: tgUser.id,
           username: tgUser.username,
           first_name: tgUser.first_name,
           last_name: tgUser.last_name || null,
         };
-
+        
+        console.log("AuthProvider: Отправляем на бэкенд следующие данные:", userDataForApi);
         try {
           const response = await getOrCreateUser(userDataForApi);
           setCurrentUser(response.data);
+          console.log("AuthProvider: Успешный ответ от бэкенда:", response.data);
         } catch (error) {
-          console.error("Не удалось получить/создать пользователя на бэкенде:", error);
+          console.error("AuthProvider: ОШИБКА при запросе к /get_or_create:", error);
           setCurrentUser(null);
+        } finally {
+          setLoading(false);
+          console.log("AuthProvider: Загрузка завершена.");
         }
       } else {
-        // Если мы в обычном браузере (для отладки)
-        console.warn("Не удалось получить данные от Telegram. Используется тестовый пользователь.");
-        
-        const testUserData = {
-          id: 111222333,
-          first_name: "Тестовый",
-          username: "test_user",
-          last_name: "Пользователь"
-        };
-
+        console.warn("AuthProvider: Пользователь Telegram НЕ найден. Используется тестовый пользователь.");
+        const testUserData = { id: 111222333, first_name: "Тестовый", username: "test_user", last_name: "Пользователь" };
+        console.log("AuthProvider: Отправляем на бэкенд тестовые данные:", testUserData);
         try {
           const response = await getOrCreateUser(testUserData);
           setCurrentUser(response.data);
+          console.log("AuthProvider: Успешный ответ от бэкенда (тестовый пользователь):", response.data);
         } catch (e) { 
-          console.error("Не удалось загрузить тестового пользователя", e);
+          console.error("AuthProvider: ОШИБКА при загрузке тестового пользователя", e);
+        } finally {
+          setLoading(false);
+          console.log("AuthProvider: Загрузка завершена.");
         }
       }
-      setLoading(false);
     };
 
-    // Сообщаем Telegram, что приложение готово и запускаем инициализацию
     WebApp.ready();
     initTelegramData();
-  }, []); // Пустой массив зависимостей означает "выполнить один раз при монтировании"
+  }, []);
 
-  // 3. Формируем объект `value`, который будет доступен всем дочерним компонентам
   const value = { currentUser, loading, updateCurrentUser };
 
   return (
     <AuthContext.Provider value={value}>
-      {children} {/* <-- Здесь мы всегда рендерим дочерние компоненты (наше приложение) */}
+      {children}
     </AuthContext.Provider>
   );
 };
 
-// 4. Создаем удобный хук для использования контекста в других компонентах
 export const useAuth = () => {
   return useContext(AuthContext);
 };
