@@ -22,11 +22,12 @@ export const fetchMarketPrices = (region) => {
   return apiClient.get(`/prices/${encodeURIComponent(region)}`);
 };
 
-export const createAnnouncement = (announcementData, userId) => {
-  // Добавляем ID пользователя в URL как query parameter
-  const url = `/announcements/?current_user_id=${userId}`;
-  // В тело запроса кладем данные самого объявления
-  return apiClient.post(url, announcementData);
+export const createAnnouncementWithImage = (formData) => {
+  return apiClient.post('/announcements/', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
 };
 
 export const getOrCreateUser = (userData) => {

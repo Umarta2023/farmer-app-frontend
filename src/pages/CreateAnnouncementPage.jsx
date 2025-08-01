@@ -1,25 +1,29 @@
 // src/pages/CreateAnnouncementPage.jsx
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createAnnouncement } from '../api';
+import { createAnnouncementWithImage } from '../api'; // Убедитесь, что эта функция есть в api.js
 import { useAuth } from '../context/AuthContext';
 import '../App.css';
 import './CreateAnnouncementPage.css';
 
 function CreateAnnouncementPage() {
-  // Используем один объект для хранения всех данных формы
+  // Единое состояние для текстовых полей формы
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     price: '',
   });
+
+  // Отдельное состояние для выбранного файла
+  const [imageFile, setImageFile] = useState(null);
   
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(''); // Состояние для хранения текста ошибки
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const { currentUser } = useAuth();
 
-  // Единый обработчик для всех полей
+  // Единый обработчик для изменения текстовых полей
   const handleChange = (e) => {
     const { id, value } = e.target;
     setFormData(prevData => ({
@@ -28,6 +32,15 @@ function CreateAnnouncementPage() {
     }));
   };
 
+  // Обработчик для выбора файла
+  const handleFileChange = (e) => {
+    // Берем первый файл из списка (даже если можно выбрать несколько)
+    if (e.target.files && e.target.files.length > 0) {
+      setImageFile(e.target.files[0]);
+    }
+  };
+
+  // Обработчик отправки формы
   const handleSubmit = (event) => {
     event.preventDefault();
     setError(''); // Сбрасываем старые ошибки
@@ -37,32 +50,43 @@ function CreateAnnouncementPage() {
       setError('Заголовок не может быть пустым.');
       return;
     }
-    if (formData.price && parseFloat(formData.price) <= 0) {
-      setError('Цена должна быть положительным числом.');
+    if (formData.price && parseFloat(formData.price) < 0) {
+      setError('Цена не может быть отрицательной.');
       return;
     }
 
     if (!currentUser) {
-      setError("Ошибка авторизации. Попробуйте перезапустить приложение.");
+      setError("Ошибка авторизации. Пожалуйста, перезапустите приложение.");
       return;
     }
 
     setLoading(true);
 
-    const announcementData = {
-      title: formData.title,
-      description: formData.description,
-      price: formData.price ? parseFloat(formData.price) : null,
-    };
-    
-    createAnnouncement(announcementData, currentUser.id)
+    // Создаем объект FormData для отправки данных и файла
+    const dataToSend = new FormData();
+    dataToSend.append('title', formData.title);
+    dataToSend.append('description', formData.description);
+    // Отправляем цену, только если она введена
+    if (formData.price) {
+      dataToSend.append('price', formData.price);
+    }
+    // Отправляем файл, только если он выбран
+    if (imageFile) {
+      dataToSend.append('image', imageFile);
+    }
+    // ID пользователя теперь тоже часть FormData
+    dataToSend.append('current_user_id', currentUser.id);
+
+    // Вызываем API-функцию, которая умеет работать с FormData
+    createAnnouncementWithImage(dataToSend)
       .then(response => {
         alert('Объявление успешно создано!');
         navigate('/market'); // Перенаправляем на рынок
       })
       .catch(err => {
         console.error('Ошибка при создании объявления:', err);
-        setError('Не удалось создать объявление. Попробуйте позже.');
+        const errorMessage = err.response?.data?.detail || 'Не удалось создать объявление. Попробуйте позже.';
+        setError(errorMessage);
       })
       .finally(() => {
         setLoading(false);
@@ -84,6 +108,7 @@ function CreateAnnouncementPage() {
               value={formData.title}
               onChange={handleChange}
               maxLength="100"
+              required // Дополнительная браузерная валидация
             />
           </div>
 
@@ -106,7 +131,17 @@ function CreateAnnouncementPage() {
               value={formData.price}
               onChange={handleChange}
               placeholder="Например: 15000"
-              min="0"
+              min="0" // Запрещаем ввод отрицательных чисел в браузере
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="image">Фотография</label>
+            <input
+              type="file"
+              id="image"
+              accept="image/png, image/jpeg" // Принимаем только картинки
+              onChange={handleFileChange}
             />
           </div>
 
