@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom'; // useParams для полу
 import { fetchAnnouncementById } from '../api'; // Создадим эту функцию
 import '../App.css';
 import './AnnouncementDetailPage.css'; // Создадим стили
+import { API_BASE_URL } from '../api';
 
 function AnnouncementDetailPage() {
   const [announcement, setAnnouncement] = useState(null);
@@ -31,6 +32,11 @@ function AnnouncementDetailPage() {
     ? `${announcement.price.toLocaleString('ru-RU')} ₽` 
     : 'Цена не указана';
 
+  // Собираем полный URL для картинки
+  const fullImageUrl = announcement.image_url 
+    ? `${API_BASE_URL}${announcement.image_url}` 
+    : null;
+
   return (
     <div>
       <header className="app-header">
@@ -40,6 +46,10 @@ function AnnouncementDetailPage() {
       </header>
       <div className="page-content">
         <div className="detail-card">
+          {/* --- НОВЫЙ БЛОК ДЛЯ КАРТИНКИ --- */}
+          {fullImageUrl && (
+            <img src={fullImageUrl} alt={announcement.title} className="detail-image" />
+          )}
           <p className="detail-price">{formattedPrice}</p>
           <div className="detail-section">
             <h3>Описание</h3>
