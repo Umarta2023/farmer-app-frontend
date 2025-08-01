@@ -1,0 +1,62 @@
+/* src/components/AnnouncementCard.css */
+.card {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.card-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover; /* Картинка будет красиво обрезаться */
+}
+
+.card-content {
+  padding: 16px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.card-description {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 16px 0;
+  /* Ограничиваем количество строк для описания */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2; /* <-- ДОБАВЛЕНО стандартное свойство */
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 12px;
+}
+
+.card-price {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--tg-link-color); /* Используем наш зеленый цвет */
+}
+
+.card-date {
+  font-size: 12px;
+  color: var(--tg-hint-color);
+}
+.card-link {
+  text-decoration: none;
+  color: inherit; /* Наследуем цвет текста от родителя */
+}

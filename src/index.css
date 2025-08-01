@@ -1,0 +1,35 @@
+/* src/index.css */
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* Цвета из нашего дизайна */
+  --tg-bg-color: #ffffff; /* Белый фон */
+  --tg-text-color: #000000; /* Черный текст */
+  --tg-hint-color: #8E8E93; /* Серый для подсказок */
+  --tg-link-color: #2ECC71; /* Наш акцентный зеленый */
+  --tg-secondary-bg-color: #F6F6F6; /* Светло-серый для виджетов */
+}
+
+body {
+  margin: 0;
+  background-color: #e3e3e3; /* Фон вокруг "телефона" */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding-top: 20px;
+}
+
+/* Имитируем окно телефона */
+#root {
+  width: 100%;
+  max-width: 420px;
+  min-height: 800px;
+  background-color: var(--tg-bg-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+}

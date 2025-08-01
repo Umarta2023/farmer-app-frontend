@@ -1,0 +1,141 @@
+/* src/App.css */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 60px; /* Оставляем место для навигации */
+}
+
+.app-header {
+  padding: 16px;
+  background-color: var(--tg-secondary-bg-color);
+}
+
+.app-header h1 {
+  font-size: 24px;
+  margin: 0;
+  color: var(--tg-text-color);
+}
+
+.app-header p {
+  margin: 4px 0 0;
+  color: var(--tg-hint-color);
+}
+
+.search-bar {
+  padding: 16px;
+}
+
+.search-bar input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  font-size: 16px;
+  box-sizing: border-box; /* Чтобы padding не ломал ширину */
+}
+
+.widgets-container {
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* Расстояние между виджетами */
+}
+
+.widget {
+  background-color: var(--tg-secondary-bg-color);
+  padding: 16px;
+  border-radius: 12px;
+}
+
+.bottom-nav {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: var(--tg-secondary-bg-color);
+  border-top: 1px solid #e0e0e0;
+}
+
+.nav-item {
+  font-size: 12px;
+  color: var(--tg-hint-color);
+  text-align: center;
+}
+
+.nav-item.active {
+  color: var(--tg-link-color);
+}
+
+.app-content {
+  flex-grow: 1; /* Заставляет основной контент растягиваться */
+  overflow-y: auto; /* Добавляет прокрутку, если контент не влезает */
+}
+
+.quick-actions {
+  display: flex;
+  gap: 16px;
+}
+
+.action-button {
+  flex: 1; /* Кнопки займут равное пространство */
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  border: none;
+  background-color: var(--tg-link-color); /* Используем наш зеленый акцентный цвет */
+  color: white;
+  cursor: pointer;
+}
+
+.action-button:hover {
+  opacity: 0.9;
+}
+
+.page-content {
+  padding: 16px;
+}
+.action-button-link {
+  text-decoration: none;
+  flex: 1;
+}
+
+.profile-card {
+  background-color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+.profile-card h2 {
+  margin-top: 0;
+}
+.profile-card p {
+  color: #666;
+}
+.profile-card .action-button {
+  width: 100%;
+  margin-top: 20px;
+}
+.filter-container {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.filter-container label {
+  font-weight: 500;
+}
+.filter-container select {
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background-color: white;
+  font-size: 14px;
+}

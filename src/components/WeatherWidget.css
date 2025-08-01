@@ -1,0 +1,29 @@
+/* src/components/WeatherWidget.css */
+.weather-widget .weather-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.weather-widget h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.weather-widget a {
+  font-size: 14px;
+  color: var(--tg-hint-color);
+  text-decoration: none;
+}
+
+.weather-widget .weather-body h2 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 500;
+}
+
+.weather-widget .weather-body p {
+  margin: 4px 0 0;
+  color: var(--tg-hint-color);
+}
