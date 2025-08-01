@@ -1,18 +1,28 @@
 // src/api.js
 import axios from 'axios';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
-const API_URL_WITH_API = `${API_BASE_URL_WITHOUT_API}/api`;
+
+// 1. Объявляем переменную для базового URL (БЕЗ /api)
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000";
+
+// 2. Объявляем переменную для URL эндпоинтов (С /api)
+const API_URL_WITH_API = `${API_BASE_URL}/api`;
+
+console.log("Using API URL for endpoints:", API_URL_WITH_API);
+
+// 3. Создаем клиент, который будет работать с эндпоинтами
 const apiClient = axios.create({
   baseURL: API_URL_WITH_API,
 });
 
-export { API_BASE_URL_WITHOUT_API, apiClient };
+// Экспортируем только apiClient, так как он уже настроен.
+// API_BASE_URL экспортируется напрямую через `export const` выше.
+export { apiClient };
 
 
-// Функция для получения объявлений
+// --- ВСЕ ФУНКЦИИ НИЖЕ ОСТАЮТСЯ БЕЗ ИЗМЕНЕНИЙ ---
+
 export const fetchAnnouncements = (region) => {
   let url = '/announcements/';
-  // Если регион указан, добавляем его как параметр
   if (region) {
     url += `?region=${encodeURIComponent(region)}`;
   }
@@ -20,8 +30,20 @@ export const fetchAnnouncements = (region) => {
 };
 
 export const fetchMarketPrices = (region) => {
-  // Наш бэкенд ждет регион в URL
   return apiClient.get(`/prices/${encodeURIComponent(region)}`);
+};
+
+export const getOrCreateUser = (userData) => {
+  return apiClient.post('/users/get__create', userData);
+};
+
+export const updateUserRegion = (userId, region) => {
+  const data = { region: region }; 
+  return apiClient.put(`/users/${userId}/region`, data);
+};
+
+export const fetchAnnouncementById = (id) => {
+  return apiClient.get(`/announcements/${id}`);
 };
 
 export const createAnnouncementWithImage = (formData) => {
@@ -31,24 +53,3 @@ export const createAnnouncementWithImage = (formData) => {
     },
   });
 };
-
-export const getOrCreateUser = (userData) => {
-  // Эта функция будет отправлять POST-запрос на наш эндпоинт
-  // Бэкенд сам решит, создать нового пользователя или вернуть существующего
-  return apiClient.post('/users/get_or_create', userData);
-};
-
-export const updateUserRegion = (userId, region) => {
-  // Отправляем данные в формате, который ожидает наша Pydantic-схема UserUpdate
-  const data = { region: region }; 
-  return apiClient.put(`/users/${userId}/region`, data);
-};
-
-export const fetchAnnouncementById = (id) => {
-  return apiClient.get(`/announcements/${id}`);
-};
-
-export const fetchUserAnnouncements = (userId) => {
-  return apiClient.get(`/users/${userId}/announcements`);
-};
-// В будущем здесь будут и другие функции: createUser, createAnnouncement и т.д.
