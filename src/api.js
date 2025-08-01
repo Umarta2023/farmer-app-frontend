@@ -45,5 +45,7 @@ export const fetchAnnouncementById = (id) => {
   return apiClient.get(`/announcements/${id}`);
 };
 
-
+export const fetchUserAnnouncements = (userId) => {
+  return apiClient.get(`/users/${userId}/announcements`);
+};
 // В будущем здесь будут и другие функции: createUser, createAnnouncement и т.д.
