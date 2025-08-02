@@ -50,3 +50,7 @@ export const createAnnouncementWithImage = (formData) => {
     },
   });
 };
+
+export const healthCheck = () => {
+  return apiClient.get('/health');
+};
