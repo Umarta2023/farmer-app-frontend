@@ -1,10 +1,13 @@
 // src/context/AuthContext.jsx
 
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import { getOrCreateUser, healthCheck } from '../api'; // Убедитесь, что healthCheck импортируется
+import { getOrCreateUser, healthCheck } from '../api';
 import WebApp from '@twa-dev/sdk';
 
 const AuthContext = createContext(null);
+
+// Функция-помощник для создания паузы
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -20,47 +23,40 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
 
       try {
-        // --- ШАГ 1: "ПРОГРЕВ" СЕРВЕРА ---
         console.log("AuthProvider: Отправляем health check, чтобы 'разбудить' сервер...");
         await healthCheck();
         console.log("AuthProvider: Сервер 'проснулся', health check OK.");
-        // --- КОНЕЦ "ПРОГРЕВА" ---
+        
+        // --- ВОТ ГЛАВНОЕ ИЗМЕНЕНИЕ ---
+        // Добавляем небольшую паузу (500 миллисекунд) перед основным запросом
+        console.log("AuthProvider: Ждем 500мс для полной инициализации сервера...");
+        await sleep(500);
 
-        // --- ШАГ 2: ПОЛУЧЕНИЕ ДАННЫХ ПОЛЬЗОВАТЕЛЯ ---
         const tgUser = WebApp.initDataUnsafe?.user;
+        let userDataToProcess;
 
         if (tgUser) {
-          // Если мы в Telegram
           console.log("AuthProvider: Пользователь Telegram найден, ID:", tgUser.id);
-          const userDataForApi = {
+          userDataToProcess = {
             id: tgUser.id,
             username: tgUser.username,
             first_name: tgUser.first_name,
             last_name: tgUser.last_name || null,
           };
-          
-          console.log("AuthProvider: Отправляем на бэкенд данные для get/create:", userDataForApi);
-          const response = await getOrCreateUser(userDataForApi);
-          setCurrentUser(response.data);
-          console.log("AuthProvider: Успешный ответ от бэкенда:", response.data);
-
         } else {
-          // Если мы в обычном браузере
           console.warn("AuthProvider: Пользователь Telegram НЕ найден. Используется тестовый пользователь.");
-          const testUserData = { id: 111222333, first_name: "Тестовый", username: "test_user", last_name: "Пользователь" };
-          
-          console.log("AuthProvider: Отправляем на бэкенд тестовые данные:", testUserData);
-          const response = await getOrCreateUser(testUserData);
-          setCurrentUser(response.data);
-          console.log("AuthProvider: Успешный ответ от бэкенда (тестовый пользователь):", response.data);
+          userDataToProcess = { id: 111222333, first_name: "Тестовый", username: "test_user", last_name: "Пользователь" };
         }
+        
+        console.log("AuthProvider: Отправляем на бэкенд данные для get/create:", userDataToProcess);
+        const response = await getOrCreateUser(userDataToProcess);
+        setCurrentUser(response.data);
+        console.log("AuthProvider: Успешный ответ от бэкенда:", response.data);
 
       } catch (error) {
-        // Ловим любые ошибки, которые могли произойти на шагах 1 или 2
         console.error("AuthProvider: Произошла критическая ошибка при инициализации:", error);
         setCurrentUser(null);
       } finally {
-        // Этот блок выполнится в любом случае - и при успехе, и при ошибке
         setLoading(false);
         console.log("AuthProvider: Загрузка завершена.");
       }
@@ -68,7 +64,7 @@ export const AuthProvider = ({ children }) => {
 
     WebApp.ready();
     initTelegramData();
-  }, []); // Пустой массив зависимостей = выполнить один раз
+  }, []);
 
   const value = { currentUser, loading, updateCurrentUser };
 
