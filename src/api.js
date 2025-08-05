@@ -8,7 +8,7 @@ import axios from 'axios';
 export const API_BASE_URL = "";
 
 // Формируем URL для API-запросов (например, "/api")
-const API_URL_WITH_API = `${API_BASE_URL}/api`;
+const API_URL_WITH_API = API_BASE_URL;
 
 console.log("Using BASE URL for files:", API_BASE_URL);
 console.log("Using API URL for endpoints:", API_URL_WITH_API);
