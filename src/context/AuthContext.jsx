@@ -1,80 +1,54 @@
-// src/context/AuthContext.jsx
-
-import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import { getOrCreateUser, healthCheck } from '../api';
-import WebApp from '@twa-dev/sdk';
+// src/contexts/AuthContext.jsx
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { getOrCreateUser } from '../api';
+import { useTelegram } from '../hooks/useTelegram'; // Предполагается, что у вас есть такой хук
 
 const AuthContext = createContext(null);
-
-// Функция-помощник для создания паузы
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  const updateCurrentUser = useCallback((updatedUserData) => {
-    setCurrentUser(updatedUserData);
-  }, []);
+  const [error, setError] = useState(null);
+  const { tg } = useTelegram(); // Используем хук для доступа к объекту Telegram
 
   useEffect(() => {
-    const initTelegramData = async () => {
-      console.log("AuthProvider: useEffect запущен.");
-      setLoading(true);
-
+    const initAuth = async () => {
       try {
-        console.log("AuthProvider: Отправляем health check, чтобы 'разбудить' сервер...");
-        await healthCheck();
-        console.log("AuthProvider: Сервер 'проснулся', health check OK.");
-        
-        // --- ВОТ ГЛАВНОЕ ИЗМЕНЕНИЕ ---
-        // Добавляем небольшую паузу (500 миллисекунд) перед основным запросом
-        console.log("AuthProvider: Ждем 500мс для полной инициализации сервера...");
-        await sleep(500);
-
-        const tgUser = WebApp.initDataUnsafe?.user;
-        let userDataToProcess;
+        setLoading(true);
+        const tgUser = tg.initDataUnsafe?.user;
+        let userDataForBackend;
 
         if (tgUser) {
-          console.log("AuthProvider: Пользователь Telegram найден, ID:", tgUser.id);
-          userDataToProcess = {
+          console.log("AuthProvider: Пользователь Telegram найден:", tgUser);
+          userDataForBackend = {
             id: tgUser.id,
-            username: tgUser.username,
             first_name: tgUser.first_name,
-            last_name: tgUser.last_name || null,
+            last_name: tgUser.last_name || '',
+            username: tgUser.username,
           };
         } else {
-          console.warn("AuthProvider: Пользователь Telegram НЕ найден. Используется тестовый пользователь.");
-          userDataToProcess = { id: 111222333, first_name: "Тестовый", username: "test_user", last_name: "Пользователь" };
+          console.log("AuthProvider: Пользователь Telegram НЕ найден. Используется тестовый.");
+          userDataForBackend = { id: 111222333, first_name: 'Тестовый', username: 'test_user' };
         }
-        
-        console.log("AuthProvider: Отправляем на бэкенд данные для get/create:", userDataToProcess);
-        const response = await getOrCreateUser(userDataToProcess);
-        setCurrentUser(response.data);
-        console.log("AuthProvider: Успешный ответ от бэкенда:", response.data);
 
-      } catch (error) {
-        console.error("AuthProvider: Произошла критическая ошибка при инициализации:", error);
-        setCurrentUser(null);
+        const response = await getOrCreateUser(userDataForBackend);
+        setUser(response.data);
+        console.log("AuthProvider: Пользователь успешно авторизован:", response.data);
+
+      } catch (err) {
+        console.error("AuthProvider: Ошибка инициализации:", err);
+        setError(err.message);
       } finally {
         setLoading(false);
-        console.log("AuthProvider: Загрузка завершена.");
       }
     };
-
-    WebApp.ready();
-    initTelegramData();
-  }, []);
-
-  const value = { currentUser, loading, updateCurrentUser };
+    initAuth();
+  }, [tg]);
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{ user, loading, error }}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  return useContext(AuthContext);
 };

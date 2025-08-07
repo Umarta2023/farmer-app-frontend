@@ -1,64 +1,42 @@
 // src/pages/ProfilePage.jsx
-
 import React, { useState, useEffect } from 'react';
-import { updateUserRegion, fetchUserAnnouncements } from '../api';
-import { useAuth } from '../context/AuthContext';
-import AnnouncementCard from '../components/AnnouncementCard';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { fetchUserAnnouncements } from '../api';
 import '../App.css';
+import './ProfilePage.css';
 
 function ProfilePage() {
-  const { currentUser, loading: authLoading, updateCurrentUser } = useAuth();
-  const [updateLoading, setUpdateLoading] = useState(false);
-  const [myAnnouncements, setMyAnnouncements] = useState([]);
-  const [announcementsLoading, setAnnouncementsLoading] = useState(true);
+  const { user, loading: authLoading, error: authError } = useAuth();
+  const [userAnnouncements, setUserAnnouncements] = useState([]);
+  const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
 
   useEffect(() => {
-    if (!currentUser) {
-      console.log("ProfilePage: currentUser еще не загружен, пропускаем загрузку объявлений.");
-      return;
-    }
-
-    setAnnouncementsLoading(true);
-    console.log(`ProfilePage: Запрашиваем объявления для пользователя ID: ${currentUser.id}`);
-
-    fetchUserAnnouncements(currentUser.id)
-      .then(response => {
-        setMyAnnouncements(response.data);
-        console.log("ProfilePage: Объявления успешно загружены.", response.data);
-      })
-      .catch(error => {
-        console.error("ProfilePage: ОШИБКА при загрузке объявлений:", error);
-      })
-      .finally(() => {
-        setAnnouncementsLoading(false);
-        console.log("ProfilePage: Загрузка объявлений завершена.");
-      });
-  }, [currentUser]);
-
-  const handleRegionUpdate = () => {
-    if (!currentUser) return;
-    const newRegion = prompt("Введите ваш новый регион:", currentUser.region || "");
-    if (newRegion && newRegion.trim() !== "") {
-      setUpdateLoading(true);
-      updateUserRegion(currentUser.id, newRegion)
+    // Загружаем объявления только если пользователь успешно загружен
+    if (user) {
+      console.log(`ProfilePage: Запрашиваем объявления для пользователя ID: ${user.id}`);
+      setLoadingAnnouncements(true);
+      fetchUserAnnouncements(user.id)
         .then(response => {
-          updateCurrentUser(response.data);
+          console.log(`ProfilePage: Объявления успешно загружены. (${response.data.length})`, response.data);
+          setUserAnnouncements(response.data || []);
         })
         .catch(error => {
-          console.error("Ошибка при обновлении региона:", error);
-          alert("Произошла ошибка!");
+          console.error("ProfilePage: Ошибка при загрузке объявлений:", error);
+          setUserAnnouncements([]);
         })
         .finally(() => {
-          setUpdateLoading(false);
+          setLoadingAnnouncements(false);
+          console.log("ProfilePage: Загрузка объявлений завершена.");
         });
     }
-  };
+  }, [user]); // Эффект зависит от объекта user
 
   if (authLoading) {
     return <p className="page-content">Загрузка профиля...</p>;
   }
-
-  if (!currentUser) {
+  
+  if (authError || !user) {
     return <p className="page-content">Не удалось загрузить профиль. Попробуйте перезапустить приложение.</p>;
   }
 
@@ -69,26 +47,29 @@ function ProfilePage() {
       </header>
       <div className="page-content">
         <div className="profile-card">
-          <h2>{currentUser.first_name} {currentUser.last_name}</h2>
-          <p>@{currentUser.username}</p>
-          <p><strong>Регион:</strong> {currentUser.region || "Не указан"}</p>
-          <button onClick={handleRegionUpdate} className="action-button" disabled={updateLoading}>
-            {updateLoading ? 'Сохранение...' : 'Сменить регион'}
-          </button>
+          <h2>{user.first_name} {user.last_name}</h2>
+          <p className="username">@{user.username}</p>
+          <p><strong>Регион:</strong> {user.region || 'Не указан'}</p>
+          <button className="action-button-secondary">Редактировать</button>
         </div>
 
-        <div className="my-announcements-section">
-          <h2>Мои объявления</h2>
-          {announcementsLoading ? (
+        <div className="announcements-section">
+          <h3>Мои объявления</h3>
+          {loadingAnnouncements ? (
             <p>Загрузка объявлений...</p>
           ) : (
-            myAnnouncements.length > 0 ? (
-              myAnnouncements.map(ann => (
-                <AnnouncementCard key={ann.id} announcement={ann} />
-              ))
-            ) : (
-              <p>У вас пока нет объявлений.</p>
-            )
+            <ul className="announcements-list">
+              {/* Вот защита */}
+              {Array.isArray(userAnnouncements) && userAnnouncements.map(ann => (
+                <li key={ann.id}>
+                  <Link to={`/announcements/${ann.id}`}>{ann.title}</Link>
+                  <span>{ann.price ? `${ann.price.toLocaleString('ru-RU')} ₽` : ''}</span>
+                </li>
+              ))}
+              {Array.isArray(userAnnouncements) && userAnnouncements.length === 0 && (
+                <p>У вас пока нет объявлений.</p>
+              )}
+            </ul>
           )}
         </div>
       </div>
