@@ -17,6 +17,7 @@ function HomePage() {
   };
 
   useEffect(() => {
+    // Сбрасываем данные перед новой загрузкой
     setAnnouncements([]);
     setMarketPrices([]);
     setLoading(true);
@@ -26,8 +27,9 @@ function HomePage() {
       fetchMarketPrices(region),
     ])
     .then(([announcementsRes, pricesRes]) => {
-      setAnnouncements(announcementsRes.data);
-      setMarketPrices(pricesRes.data);
+      // Проверяем, что данные действительно пришли
+      if (announcementsRes.data) setAnnouncements(announcementsRes.data);
+      if (pricesRes.data) setMarketPrices(pricesRes.data);
     })
     .catch(error => {
       console.error("Ошибка при загрузке данных:", error);
@@ -58,7 +60,8 @@ function HomePage() {
           <h3>Цены на рынке</h3>
           {loading ? <p>Загрузка...</p> : (
             <ul className="prices-list">
-              {marketPrices.map(price => (
+              {/* ДОБАВЛЯЕМ ПРОВЕРКУ Array.isArray() */}
+              {Array.isArray(marketPrices) && marketPrices.map(price => (
                 <li key={price.crop_name}>
                   <span>{price.crop_name}</span>
                   <span className={`price-trend trend-${price.trend}`}>
@@ -81,21 +84,21 @@ function HomePage() {
         
         <div className="widget">
           <h3>Последние объявления в регионе</h3>
-          {/* ВОЗВРАЩАЕМ ЛОГИКУ ОТОБРАЖЕНИЯ */}
           {loading ? (
             <p>Загрузка...</p>
           ) : (
             <ul>
-              {announcements.map(ann => (
+              {/* ДОБАВЛЯЕМ ПРОВЕРКУ Array.isArray() */}
+              {Array.isArray(announcements) && announcements.map(ann => (
                 <li key={ann.id}>{ann.title}</li>
               ))}
-              {announcements.length === 0 && <p>Объявлений нет.</p>}
+              {Array.isArray(announcements) && announcements.length === 0 && <p>Объявлений нет.</p>}
             </ul>
           )}
         </div>
       
-      </div> {/* <-- ВОТ ОН, недостающий закрывающий тег для widgets-container */}
-    </div>   // <-- И вот он, недостающий закрывающий тег для корневого div
+      </div> {/* <-- Теперь этот тег на месте */}
+    </div>   // <-- И этот тег тоже
   );
 }
 

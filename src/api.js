@@ -1,23 +1,16 @@
 // src/api.js
-
 import axios from 'axios';
 
-// Для продакшена на VPS, где фронт и бэк на одном домене,
-// базовый URL может быть пустым. Запросы будут идти на тот же хост.
-// Для локальной разработки можно временно подставить: "http://127.0.0.1:8000"
-export const API_BASE_URL = "";
-
-// Формируем URL для API-запросов (например, "/api")
-const API_URL_WITH_API = API_BASE_URL;
-
-console.log("Using BASE URL for files:", API_BASE_URL);
-console.log("Using API URL for endpoints:", API_URL_WITH_API);
-
+// Создаем единственный экземпляр axios с правильной конфигурацией.
+// Этот apiClient будет использоваться во всем приложении.
 const apiClient = axios.create({
-  baseURL: API_URL_WITH_API,
+  // Все запросы будут автоматически начинаться с /api
+  // Это будет работать и локально (через прокси Vite)
+  // и на сервере (через прокси Nginx)
+  baseURL: '/api',
 });
 
-// --- Функции для работы с API ---
+// --- Экспортируем функции, которые используют этот клиент ---
 
 export const healthCheck = () => {
   return apiClient.get('/health');
@@ -28,8 +21,7 @@ export const getOrCreateUser = (userData) => {
 };
 
 export const updateUserRegion = (userId, region) => {
-  const data = { region: region }; 
-  return apiClient.put(`/users/${userId}/region`, data);
+  return apiClient.put(`/users/${userId}/region`, { region });
 };
 
 export const fetchUserAnnouncements = (userId) => {
@@ -53,10 +45,7 @@ export const fetchAnnouncementById = (id) => {
 };
 
 export const createAnnouncementWithImage = (formData) => {
-  // Для FormData мы не передаем current_user_id в URL, он уже внутри formData
   return apiClient.post('/announcements/', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+    headers: { 'Content-Type': 'multipart/form-data' },
   });
 };

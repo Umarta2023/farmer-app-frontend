@@ -1,17 +1,19 @@
 // src/pages/AnnouncementDetailPage.jsx
+
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom'; // useParams для получения ID из URL
-import { fetchAnnouncementById } from '../api'; // Создадим эту функцию
+import { useParams, Link } from 'react-router-dom';
+// 1. УБИРАЕМ API_BASE_URL ИЗ ИМПОРТА
+import { fetchAnnouncementById } from '../api'; 
 import '../App.css';
-import './AnnouncementDetailPage.css'; // Создадим стили
-import { API_BASE_URL } from '../api';
+import './AnnouncementDetailPage.css';
 
 function AnnouncementDetailPage() {
   const [announcement, setAnnouncement] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { id } = useParams(); // Получаем `id` из URL (например, /announcements/5)
+  const { id } = useParams();
 
   useEffect(() => {
+    // Эта часть остается без изменений, она идеальна
     fetchAnnouncementById(id)
       .then(response => {
         setAnnouncement(response.data);
@@ -22,33 +24,34 @@ function AnnouncementDetailPage() {
       .finally(() => {
         setLoading(false);
       });
-  }, [id]); // Эффект зависит от ID в URL
+  }, [id]);
 
   if (loading) return <p className="page-content">Загрузка...</p>;
   if (!announcement) return <p className="page-content">Объявление не найдено.</p>;
 
-  // Форматируем цену для красивого отображения
+  // Эта часть тоже хороша
   const formattedPrice = announcement.price 
     ? `${announcement.price.toLocaleString('ru-RU')} ₽` 
     : 'Цена не указана';
 
-  // Собираем полный URL для картинки
-  const fullImageUrl = announcement.image_url 
-    ? `${API_BASE_URL}${announcement.image_url}` 
-    : null;
+  // 2. УДАЛЯЕМ ЛОГИКУ С API_BASE_URL
+  // Переменная fullImageUrl больше не нужна.
+  // Мы будем использовать announcement.image_url напрямую.
+  // const fullImageUrl = announcement.image_url 
+  //   ? `${API_BASE_URL}${announcement.image_url}` 
+  //   : null;
 
   return (
     <div>
       <header className="app-header">
-        {/* Ссылка "Назад" */}
         <Link to="/market" className="back-link">← Назад к списку</Link>
         <h1>{announcement.title}</h1>
       </header>
       <div className="page-content">
         <div className="detail-card">
-          {/* --- НОВЫЙ БЛОК ДЛЯ КАРТИНКИ --- */}
-          {fullImageUrl && (
-            <img src={fullImageUrl} alt={announcement.title} className="detail-image" />
+          {/* 3. ИСПОЛЬЗУЕМ announcement.image_url НАПРЯМУЮ */}
+          {announcement.image_url && (
+            <img src={announcement.image_url} alt={announcement.title} className="detail-image" />
           )}
           <p className="detail-price">{formattedPrice}</p>
           <div className="detail-section">
